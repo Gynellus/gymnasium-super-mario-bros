@@ -10,6 +10,7 @@ from gymnasium.spaces import Discrete
 import numpy as np
 from nes_py._rom import ROM
 from nes_py._image_viewer import ImageViewer
+import pygame
 
 
 # the path to the directory this file is in
@@ -366,42 +367,29 @@ class NESEnv(gymnasium.Env):
         if self.viewer is not None:
             self.viewer.close()
 
-    def render(self, mode='human'):
-        """
-        Render the environment.
-
-        Args:
-            mode (str): the mode to render with:
-            - human: render to the current display
-            - rgb_array: Return an numpy.ndarray with shape (x, y, 3),
-              representing RGB values for an x-by-y pixel image
-
-        Returns:
-            a numpy array if mode is 'rgb_array', None otherwise
-
-        """
-        if mode == 'human':
-            # if the viewer isn't setup, import it and create one
+    def render(self):
+        """Render the environment."""
+        if self.render_mode == 'human':
             if self.viewer is None:
-                # get the caption for the ImageViewer
-                if self.spec is None:
-                    # if there is no spec, just use the .nes filename
-                    caption = self._rom_path.split('/')[-1]
-                else:
-                    # set the caption to the OpenAI Gym id
-                    caption = self.spec.id
-                # create the ImageViewer to display frames
-                self.viewer = ImageViewer(
-                    caption=caption,
-                    height=SCREEN_HEIGHT,
-                    width=SCREEN_WIDTH,
-                )
-            # show the screen on the image viewer
-            self.viewer.show(self.screen)
-        elif mode == 'rgb_array':
-            return self.screen
+                pygame.init()
+                # Assuming self.screen.shape is (height, width, channels)
+                height, width, _ = self.screen.shape
+                self.viewer = pygame.display.set_mode((width, height))
+                pygame.display.set_caption(self.spec.id if self.spec else self._rom_path.split('/')[-1])
+
+            # Transpose and flip the screen array to match Pygame's expectations
+            corrected_screen = np.transpose(self.screen, axes=(1, 0, 2))  # Swap width and height
+
+            # Update the display with the corrected screen image
+            pygame.surfarray.blit_array(self.viewer, corrected_screen)
+            pygame.display.flip()
+
+        elif self.render_mode == 'rgb_array':
+            # Return the current screen as a numpy array
+            return np.array(self.screen)
+
         else:
-            # unpack the modes as comma delineated strings ('a', 'b', ...)
+            # Handling unsupported modes
             render_modes = [repr(x) for x in self.metadata['render.modes']]
             msg = 'valid render modes are: {}'.format(', '.join(render_modes))
             raise NotImplementedError(msg)

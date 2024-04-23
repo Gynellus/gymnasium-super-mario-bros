@@ -1,6 +1,6 @@
 """An OpenAI Gym environment for Super Mario Bros. and Lost Levels."""
 from collections import defaultdict
-from nes_py import NESEnv
+from .nes_env import NESEnv
 import numpy as np
 from ._roms import decode_target
 from ._roms import rom_path
@@ -31,7 +31,7 @@ class SuperMarioBrosEnv(NESEnv):
     # the legal range of rewards for each step
     reward_range = (-15, 15)
 
-    def __init__(self, rom_mode='vanilla', lost_levels=False, target=None):
+    def __init__(self, rom_mode='vanilla', lost_levels=False, target=None, **kwargs):
         """
         Initialize a new Super Mario Bros environment.
 
@@ -49,7 +49,7 @@ class SuperMarioBrosEnv(NESEnv):
         # decode the ROM path based on mode and lost levels flag
         rom = rom_path(lost_levels, rom_mode)
         # initialize the super object with the ROM path
-        super(SuperMarioBrosEnv, self).__init__(rom)
+        super(SuperMarioBrosEnv, self).__init__(rom, **kwargs)
         # set the target world, stage, and area variables
         target = decode_target(target, lost_levels)
         self._target_world, self._target_stage, self._target_area = target
@@ -316,6 +316,19 @@ class SuperMarioBrosEnv(NESEnv):
         self.ram[0x000e] = 0x06
         # step forward one frame
         self._frame_advance(0)
+
+    def _set_x_position(self, x_position):
+        """Set the horizontal position to a specific value.
+
+        Args:
+            x_position (int): The desired horizontal position in the game.
+        """
+        page_number = x_position // 0x100  # Calculate the page number
+        fine_scroll = x_position % 0x100   # Calculate the fine scroll within the page
+
+        self.ram[0x6d] = page_number  # Set the page number
+        self.ram[0x86] = fine_scroll  # Set the fine scroll
+
 
     # MARK: Reward Function
 
