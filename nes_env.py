@@ -280,7 +280,7 @@ class NESEnv(gymnasium.Env):
         if self.render_mode == 'human':
             self.render()
         # return the screen from the emulator
-        return self.screen
+        return self.screen, self._get_info()
 
     def _did_reset(self):
         """Handle any RAM hacking after a reset occurs."""
@@ -364,8 +364,8 @@ class NESEnv(gymnasium.Env):
         # deallocate the object locally
         self._env = None
         # if there is an image viewer open, delete it
-        if self.viewer is not None:
-            self.viewer.close()
+        # if self.viewer is not None:
+        #     self.viewer.close()
 
     def render(self):
         """Render the environment."""

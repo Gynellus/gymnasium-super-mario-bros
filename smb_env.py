@@ -68,6 +68,7 @@ class SuperMarioBrosEnv(NESEnv):
     def is_single_stage_env(self):
         """Return True if this environment is a stage environment."""
         return self._target_world is not None and self._target_area is not None
+    
 
     # MARK: Memory access
 
@@ -317,19 +318,7 @@ class SuperMarioBrosEnv(NESEnv):
         # step forward one frame
         self._frame_advance(0)
 
-    def _set_x_position(self, x_position):
-        """Set the horizontal position to a specific value.
-
-        Args:
-            x_position (int): The desired horizontal position in the game.
-        """
-        page_number = x_position // 0x100  # Calculate the page number
-        fine_scroll = x_position % 0x100   # Calculate the fine scroll within the page
-
-        self.ram[0x6d] = page_number  # Set the page number
-        self.ram[0x86] = fine_scroll  # Set the fine scroll
-
-
+   
     # MARK: Reward Function
 
     @property
