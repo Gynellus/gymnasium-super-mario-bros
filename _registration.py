@@ -2,7 +2,7 @@
 import gymnasium
 
 
-def _register_mario_env(id, is_random=False, **kwargs):
+def _register_mario_env(id, is_random=False, is_progressive=False, **kwargs):
     """
     Register a Super Mario Bros. (1/2) environment with OpenAI gymnasium.
 
@@ -19,6 +19,9 @@ def _register_mario_env(id, is_random=False, **kwargs):
     if is_random:
         # set the entry point to the random level environment
         entry_point = 'gym_super_mario_bros:SuperMarioBrosRandomStagesEnv'
+    elif is_progressive:
+        # set the entry point to the progressive level environment
+        entry_point = 'gym_super_mario_bros:SuperMarioBrosProgressiveStagesEnv'
     else:
         # set the entry point to the standard Super Mario Bros. environment
         entry_point = 'gym_super_mario_bros:SuperMarioBrosEnv'
@@ -45,6 +48,13 @@ _register_mario_env('SuperMarioBrosRandomStages-v0', is_random=True, rom_mode='v
 _register_mario_env('SuperMarioBrosRandomStages-v1', is_random=True, rom_mode='downsample')
 _register_mario_env('SuperMarioBrosRandomStages-v2', is_random=True, rom_mode='pixel')
 _register_mario_env('SuperMarioBrosRandomStages-v3', is_random=True, rom_mode='rectangle')
+
+
+# Super Mario Bros. Progressive Stages
+_register_mario_env('SuperMarioBrosProgressiveStages-v0', rom_mode='vanilla')
+_register_mario_env('SuperMarioBrosProgressiveStages-v1', rom_mode='downsample')
+_register_mario_env('SuperMarioBrosProgressiveStages-v2', rom_mode='pixel')
+_register_mario_env('SuperMarioBrosProgressiveStages-v3', rom_mode='rectangle')
 
 
 # Super Mario Bros. 2 (Lost Levels)

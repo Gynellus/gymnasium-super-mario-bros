@@ -25,7 +25,7 @@ _ENEMY_TYPE_ADDRESSES = [0x0016, 0x0017, 0x0018, 0x0019, 0x001A]
 _STAGE_OVER_ENEMIES = np.array([0x2D, 0x31])
 
 
-class SuperMarioBrosEnv(NESEnv):
+class SuperMarioBrosProgressiveStagesEnv(NESEnv):
     """An environment for playing Super Mario Bros with OpenAI Gym."""
 
     # the legal range of rewards for each step
@@ -49,18 +49,16 @@ class SuperMarioBrosEnv(NESEnv):
         # decode the ROM path based on mode and lost levels flag
         rom = rom_path(lost_levels, rom_mode)
         # initialize the super object with the ROM path
-        super(SuperMarioBrosEnv, self).__init__(rom, **kwargs)
+        super(SuperMarioBrosProgressiveStagesEnv, self).__init__(rom, **kwargs)
         # set the target world, stage, and area variables
-        target = decode_target(target, lost_levels)
-        self._target_world, self._target_stage, self._target_area = target
+        # target = decode_target(target, lost_levels)
+        self._target_world, self._target_stage, self._target_area = (1, 1, 1)
         # setup a variable to keep track of the last frames time
         self._time_last = 0
         # setup a variable to keep track of the last frames x position
         self._x_position_last = 0
         # reset the emulator
         self.reset()
-        # record the highest level reached
-        self.highest_level = (self._world, self._stage, self._area)
         # skip the start screen
         self._skip_start_screen()
         # create a backup state to restore from on subsequent calls to reset
@@ -258,11 +256,11 @@ class SuperMarioBrosEnv(NESEnv):
 
     # MARK: RAM Hacks
 
-    def _write_stage(self):
+    def _write_stage_progressive(self):
         """Write the stage data to RAM to overwrite loading the next stage."""
-        self.ram[0x075f] = self._target_world - 1
-        self.ram[0x075c] = self._target_stage - 1
-        self.ram[0x0760] = self._target_area - 1
+        self._target_world = self.ram[0x075f]
+        self._target_stage = self.ram[0x075c]
+        self._target_area = self.ram[0x0760]
 
     def _runout_prelevel_timer(self):
         """Force the pre-level timer to 0 to skip frames during a death."""
