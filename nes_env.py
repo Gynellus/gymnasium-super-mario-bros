@@ -311,9 +311,12 @@ class NESEnv(gymnasium.Env):
         # get the reward for this step
         reward = float(self._get_reward())
         # get the done flag for this step
-        self.done = bool(self._get_done())
+        self.done = self._get_done()
         terminated = self.done
         truncated = False
+        if self.done == 2:
+            terminated = True
+            truncated = True
         # get the info for this step
         info = self._get_info()
         # call the after step callback

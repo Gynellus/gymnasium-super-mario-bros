@@ -149,6 +149,11 @@ class SuperMarioBrosEnv(NESEnv):
         """Return the number of pixels from the left of the screen."""
         # subtract the left x position 0x071c from the current x 0x86
         return (self.ram[0x86] - self.ram[0x071c]) % 256
+    
+    @property
+    def _x_speed(self):
+        """Return the current horizontal speed."""
+        return self.ram[0x0057]
 
     @property
     def _y_pixel(self):
@@ -335,6 +340,16 @@ class SuperMarioBrosEnv(NESEnv):
             return 0
 
         return _reward
+    
+    @property
+    def _speed_reward(self):
+        """Return the reward based on Mario's speed."""
+        if self._x_speed > 10 and self._x_speed < 127:
+            return self._x_speed + 5
+        elif self._x_speed > 127:
+            return 255 - self._x_speed
+        else:
+            return 0
 
     @property
     def _time_penalty(self):
@@ -379,15 +394,13 @@ class SuperMarioBrosEnv(NESEnv):
             None
 
         """
-        # if done flag is set a reset is incoming anyway, ignore any hacking
-        if done:
-            return
         # if mario is dying, then cut to the chase and kill hi,
         if self._is_dying:
             self._kill_mario()
         # skip world change scenes (must call before other skip methods)
         if not self.is_single_stage_env:
             self._skip_end_of_world()
+
         # skip area change (i.e. enter pipe, flag get, etc.)
         self._skip_change_area()
         # skip occupied states like the black screen between lives that shows
@@ -396,12 +409,17 @@ class SuperMarioBrosEnv(NESEnv):
 
     def _get_reward(self):
         """Return the reward after a step occurs."""
-        return self._x_reward + self._time_penalty + self._death_penalty
+        reward = self._speed_reward + self._time_penalty + self._death_penalty
+        print(reward)
+        return reward
 
     def _get_done(self):
         """Return True if the episode is over, False otherwise."""
         if self.is_single_stage_env:
-            return self._is_dying or self._is_dead or self._flag_get
+            if self._flag_get:
+                return 2
+            else:
+                return self._is_dying or self._is_dead or self._flag_get
         return self._is_game_over
 
     def _get_info(self):
@@ -417,6 +435,7 @@ class SuperMarioBrosEnv(NESEnv):
             world=self._world,
             x_pos=self._x_position,
             y_pos=self._y_position,
+            speed=self._x_speed,
         )
 
 
