@@ -51,10 +51,10 @@ _register_mario_env('SuperMarioBrosRandomStages-v3', is_random=True, rom_mode='r
 
 
 # Super Mario Bros. Progressive Stages
-_register_mario_env('SuperMarioBrosProgressiveStages-v0', rom_mode='vanilla')
-_register_mario_env('SuperMarioBrosProgressiveStages-v1', rom_mode='downsample')
-_register_mario_env('SuperMarioBrosProgressiveStages-v2', rom_mode='pixel')
-_register_mario_env('SuperMarioBrosProgressiveStages-v3', rom_mode='rectangle')
+_register_mario_env('SuperMarioBrosProgressiveStages-v0', is_progressive=True, rom_mode='vanilla')
+_register_mario_env('SuperMarioBrosProgressiveStages-v1', is_progressive=True, rom_mode='downsample')
+_register_mario_env('SuperMarioBrosProgressiveStages-v2', is_progressive=True, rom_mode='pixel')
+_register_mario_env('SuperMarioBrosProgressiveStages-v3', is_progressive=True, rom_mode='rectangle')
 
 
 # Super Mario Bros. 2 (Lost Levels)

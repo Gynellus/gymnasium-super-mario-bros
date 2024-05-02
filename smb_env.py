@@ -57,6 +57,8 @@ class SuperMarioBrosEnv(NESEnv):
         self._time_last = 0
         # setup a variable to keep track of the last frames x position
         self._x_position_last = 0
+        # setup a variable to keep track of the highest x position reached
+        self._x_position_max = 0
         # reset the emulator
         self.reset()
         # record the highest level reached
@@ -65,6 +67,8 @@ class SuperMarioBrosEnv(NESEnv):
         self._skip_start_screen()
         # create a backup state to restore from on subsequent calls to reset
         self._backup()
+
+
 
     @property
     def is_single_stage_env(self):
@@ -214,6 +218,7 @@ class SuperMarioBrosEnv(NESEnv):
     @property
     def _is_dying(self):
         """Return True if Mario is in dying animation, False otherwise."""
+        self._x_position_max = 0
         return self._player_state == 0x0b or self._y_viewport > 1
 
     @property
@@ -333,24 +338,13 @@ class SuperMarioBrosEnv(NESEnv):
         """Return the reward based on left right movement between steps."""
         _reward = self._x_position - self._x_position_last
         self._x_position_last = self._x_position
-        # TODO: check whether this is still necessary
-        # resolve an issue where after death the x position resets. The x delta
-        # is typically has at most magnitude of 3, 5 is a safe bound
+        if self._x_position > self._x_position_max:
+            self._x_position_max = self._x_position
+            return _reward
         if _reward < -5 or _reward > 5:
             return 0
-
-        return _reward
+        return 0
     
-    @property
-    def _speed_reward(self):
-        """Return the reward based on Mario's speed."""
-        if self._x_speed > 10 and self._x_speed < 127:
-            return self._x_speed + 5
-        elif self._x_speed > 127:
-            return 255 - self._x_speed
-        else:
-            return 0
-
     @property
     def _time_penalty(self):
         """Return the reward for the in-game clock ticking."""
@@ -361,13 +355,13 @@ class SuperMarioBrosEnv(NESEnv):
         if _reward > 0:
             return 0
 
-        return _reward
+        return -1 # normally this would be _reward
 
     @property
     def _death_penalty(self):
         """Return the reward earned by dying."""
         if self._is_dying or self._is_dead:
-            return -25
+            return -15
 
         return 0
 
@@ -409,8 +403,7 @@ class SuperMarioBrosEnv(NESEnv):
 
     def _get_reward(self):
         """Return the reward after a step occurs."""
-        reward = self._speed_reward + self._time_penalty + self._death_penalty
-        print(reward)
+        reward = self._x_reward + self._time_penalty + self._death_penalty
         return reward
 
     def _get_done(self):
