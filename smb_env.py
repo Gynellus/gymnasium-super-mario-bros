@@ -361,7 +361,7 @@ class SuperMarioBrosEnv(NESEnv):
     def _death_penalty(self):
         """Return the reward earned by dying."""
         if self._is_dying or self._is_dead:
-            return -15
+            return -30
 
         return 0
 
