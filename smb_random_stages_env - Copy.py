@@ -47,14 +47,15 @@ class SuperMarioBrosRandomStagesEnv(SuperMarioBrosEnv):
                 # add the environment to the stage list for this world
                 self.envs[-1].append(env)
         # create a placeholder for the current environment
-        self.env = None
+        self.env = self.envs[0][0]
         # create a placeholder for the image viewer to render the screen
         self.viewer = None
 
     def _select_random_level(self):
         """Select a random level to use."""
-        level = self.levels[self.np_random.randint(len(self.levels))]
-        self.env = self.envs[level]
+        world = self.np_random.randint(1, 9) - 1
+        stage = self.np_random.randint(1, 5) - 1
+        self.env = self.envs[world][stage]
 
     def seed(self, seed=None):
         """
@@ -111,9 +112,12 @@ class SuperMarioBrosRandomStagesEnv(SuperMarioBrosEnv):
         # make sure the environment hasn't already been closed
         if self.env is None:
             raise ValueError('env has already been closed.')
-        # iterate over each environment and close them
-        for env in self.envs.values():
-            env.close()
+        # iterate over each list of stages
+        for stage_lists in self.envs:
+            # iterate over each stage
+            for stage in stage_lists:
+                # close the environment
+                stage.close()
         # close the environment permanently
         self.env = None
         # if there is an image viewer open, delete it
@@ -165,4 +169,4 @@ class SuperMarioBrosRandomStagesEnv(SuperMarioBrosEnv):
 
 
 # explicitly define the outward facing API of this module
-__all__ = [SuperMarioBrosRandomStagesEnv.__name__]
+# __all__ = [SuperMarioBrosRandomStagesEnv.__name__]

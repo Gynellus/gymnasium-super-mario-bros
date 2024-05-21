@@ -7,7 +7,7 @@ from ._roms import rom_path
 
 
 # create a dictionary mapping value of status register to string names
-_STATUS_MAP = defaultdict(lambda: 'fireball', {0: 'small', 1: 'tall'})
+_STATUS_MAP = defaultdict(lambda: 'fireball', {0:'small', 1: 'tall'})
 
 
 # a set of state values indicating that Mario is "busy"
@@ -59,12 +59,8 @@ class SuperMarioBrosEnv(NESEnv):
         self._x_position_last = 0
         # setup a variable to keep track of the highest x position reached
         self._x_position_max = 0
-        # setup a variable to keep track of the highest x position reached
-        self._x_position_max = 0
         # reset the emulator
         self.reset()
-        # record the highest level reached
-        self.highest_level = (self._world, self._stage, self._area)
         # record the highest level reached
         self.highest_level = (self._world, self._stage, self._area)
         # skip the start screen
@@ -80,6 +76,7 @@ class SuperMarioBrosEnv(NESEnv):
     def is_single_stage_env(self):
         """Return True if this environment is a stage environment."""
         return self._target_world is not None and self._target_area is not None
+    
 
     # MARK: Memory access
 
@@ -165,16 +162,6 @@ class SuperMarioBrosEnv(NESEnv):
         return self.ram[0x0057]
 
     @property
-    def _x_speed(self):
-        """Return the current horizontal speed."""
-        return self.ram[0x0057]
-
-    @property
-    def _x_speed(self):
-        """Return the current horizontal speed."""
-        return self.ram[0x0057]
-
-    @property
     def _y_pixel(self):
         """Return the current vertical position."""
         return self.ram[0x03b8]
@@ -233,7 +220,6 @@ class SuperMarioBrosEnv(NESEnv):
     @property
     def _is_dying(self):
         """Return True if Mario is in dying animation, False otherwise."""
-        self._x_position_max = 0
         self._x_position_max = 0
         return self._player_state == 0x0b or self._y_viewport > 1
 
@@ -346,6 +332,7 @@ class SuperMarioBrosEnv(NESEnv):
         # step forward one frame
         self._frame_advance(0)
 
+   
     # MARK: Reward Function
 
     @property
@@ -376,8 +363,19 @@ class SuperMarioBrosEnv(NESEnv):
     def _death_penalty(self):
         """Return the reward earned by dying."""
         if self._is_dying or self._is_dead:
-            return -30
+            return -25
 
+        return 0
+    
+    @property
+    def _y_reward(self):
+        """Give a punishment for falling into a hole."""
+        if self._y_pixel < self._y_position_last:
+            self._y_position_last = self._y_pixel
+            return 0.1 
+        self._y_position_last = self._y_pixel
+        if self._y_pixel > self._y_position_start or self._y_pixel < 3:
+            return -5
         return 0
 
     # MARK: nes-py API calls
@@ -411,7 +409,6 @@ class SuperMarioBrosEnv(NESEnv):
         if not self.is_single_stage_env:
             self._skip_end_of_world()
 
-
         # skip area change (i.e. enter pipe, flag get, etc.)
         self._skip_change_area()
         # skip occupied states like the black screen between lives that shows
@@ -420,16 +417,14 @@ class SuperMarioBrosEnv(NESEnv):
 
     def _get_reward(self):
         """Return the reward after a step occurs."""
-        reward = self._x_reward + self._time_penalty + self._death_penalty
+        x=self._x_reward
+        reward = x + self._death_penalty + self._time_penalty #self._y_reward 
+        # print("Reward: ", reward, ", x: ", x, ", dead: ", self._death_penalty, ", y:", self._y_reward)
         return reward
 
     def _get_done(self):
         """Return True if the episode is over, False otherwise."""
         if self.is_single_stage_env:
-            if self._flag_get:
-                return 2
-            else:
-                return self._is_dying or self._is_dead or self._flag_get
             if self._flag_get:
                 return 2
             else:
@@ -441,7 +436,6 @@ class SuperMarioBrosEnv(NESEnv):
         return dict(
             coins=self._coins,
             flag_get=self._flag_get,
-            lives=self._life,
             lives=self._life,
             score=self._score,
             stage=self._stage,
